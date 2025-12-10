@@ -14,7 +14,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Enable CORS
+  // Enable CORS --
   const corsOrigin = configService.get('CORS_ORIGIN') || '*';
   app.enableCors({
     origin: corsOrigin,

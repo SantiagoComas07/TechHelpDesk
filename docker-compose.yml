@@ -1,0 +1,51 @@
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: supportdesk-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: supportdesk
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - support-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  application:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: supportdesk-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_HOST: database
+      DATABASE_PORT: 5432
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: supportdesk
+      JWT_SECRET_KEY: your-secret-key-change-in-production-environment
+      JWT_TOKEN_EXPIRATION: 24h
+      NODE_ENV: production
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - support-network
+
+volumes:
+  db_data:
+
+networks:
+  support-network:
+    driver: bridge
